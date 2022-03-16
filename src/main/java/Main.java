@@ -17,9 +17,9 @@ public class Main{
          * conTxt : 0 = Console out, 1 = .txt out
          */
         final int conTxt = 1;
-
-        String commandPrefix = "find / -name \"*";
-        String commandPostfix = "*";
+        final String filePath = "/Users/shawn/Desktop/";
+        final String commandPrefix = "find / -name \"*";
+        final String commandPostfix = "*";
 
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -35,7 +35,7 @@ public class Main{
 
         try{
             commandResult = terminal.getCommandResult(commandPrefix+formattedNow+commandPostfix);
-            mailList = pop3.todaysMailList(formattedNow, 50);
+            mailList = pop3.todaysMailList(formattedNow);
             content = pop3.getMailContent(formattedYesterday, "메일 제목의 조건");
 
             if(conTxt == 0) {
@@ -54,10 +54,9 @@ public class Main{
                     time = " 오후 ";
                 }
 
-                String filePath = "/Users/shawn/Desktop/";
-                String fileName = formattedNow + time + ".txt";
+                String fileName = filePath + formattedNow + time + ".txt";
 
-                FileWriter fw = new FileWriter(filePath + fileName, true);
+                FileWriter fw = new FileWriter(fileName, false);
                 BufferedWriter bfw = new BufferedWriter(fw);
 
                 bfw.write("========== commandResult ==========\n\n");

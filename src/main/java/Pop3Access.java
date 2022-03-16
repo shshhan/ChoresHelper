@@ -2,11 +2,16 @@ import javax.mail.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+/**
+ * pop3 서버에 접근하기 위한 클래스
+ */
 public class Pop3Access{
     private String USERNAME;
     private String PASSWORD;
     private String MAIL_HOST;
     private String PORT;
+
+    private final int number = 50;      // 한번에 가져올 메일 갯수
 
     private Session emailSession;
     private Store store;
@@ -14,11 +19,16 @@ public class Pop3Access{
 
     Message[]messages;
 
+    /**
+     * Pop3Access.properties의 내용으로 pop3 서버에 접근하는 메서드
+     * @throws MessagingException
+     * @throws IOException
+     */
     private void connectPop3()throws MessagingException, IOException{
         System.out.println(">>>>>> connectPop3 invoked.");
 
         java.util.Properties properties = new java.util.Properties();
-        properties.load(new FileInputStream("src/main/java/Pop3Access.properties"));
+        properties.load(new FileInputStream("src/main/properties/Pop3Access.properties"));
 
         this.USERNAME = properties.getProperty("USERNAME");
         this.PASSWORD = properties.getProperty("PASSWORD");
@@ -38,23 +48,34 @@ public class Pop3Access{
         store.connect(MAIL_HOST, USERNAME, PASSWORD);
     }
 
-    private void getMailList(int number)throws MessagingException, IOException{
-        System.out.println(">>>>>> getMailList(" + number + ") invoked.");
+
+    /**
+     * pop3 서버의 받은 메일함에서 가장 최신 메일부터 선언한 갯수만큼 메일을 가져오는 메서드
+     * @throws MessagingException
+     * @throws IOException
+     */
+    private void getMailList()throws MessagingException, IOException{
+        System.out.println(">>>>>> getMailList() invoked.");
 
         connectPop3();
 
         inbox = store.getFolder("INBOX");
         inbox.open(Folder.READ_ONLY);
 
-        messages = inbox.getMessages(inbox.getMessageCount()-number+1, inbox.getMessageCount());
-        System.out.println(messages);
+        messages = inbox.getMessages(inbox.getMessageCount()-this.number+1, inbox.getMessageCount());
     }
 
-    public String todaysMailList(String formattedNow, int number)throws MessagingException, IOException{
-        System.out.println(">>>>>> todaysMailList(" + formattedNow + ") invoked.");
+    /**
+     * 제목에 오늘 날짜가 적힌 메일을 찾아 원하는 형태로 데이터를 가공하는 메서드
+     * @param formattedNow 오늘날짜(yyyy/MM/dd)
+     * @return  원하는 형태로 가공된 문자열(String)
+     * @throws MessagingException
+     * @throws IOException
+     */
+    public String todaysMailList(String formattedNow)throws MessagingException, IOException{
 
         if(messages == null) {
-            this.getMailList(number);
+            this.getMailList();
         }
 
         StringBuilder sb = new StringBuilder();
@@ -90,11 +111,19 @@ public class Pop3Access{
     }
 
 
+    /**
+     * 두 파라미터 조건에 맞는 메일을 찾아 그 내용을 return 하는 메서드
+     * @param formattedYesterday    어제날짜(yyyy/MM/dd)
+     * @param condition 제목에 포함되어 있어야 하는 문자열(String)
+     * @return 메일의 내용(String)
+     * @throws MessagingException
+     * @throws IOException
+     */
     public String getMailContent(String formattedYesterday, String condition)throws MessagingException, IOException{
         System.out.println(">>>>>> getMailContent("+formattedYesterday+") invoked.");
 
         if(messages == null) {
-            this.getMailList(50);
+            this.getMailList();
         }
 
         StringBuilder sb = new StringBuilder();
@@ -121,6 +150,9 @@ public class Pop3Access{
     }
 
 
+    /**
+     * 객체를 닫아주기 위한 메서드
+     */
     public void close() {
         System.out.println(">>>>>> Pop3.close() invoked.");
 
